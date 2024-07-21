@@ -56,9 +56,11 @@ case $DISTRO in
         ;;
 esac
 
+sudo apt install jq
 install_docker_compose
 install_docker_compose_completion
 
+sudo groupadd docker
 sudo usermod -aG docker $USER
 
 echo "Docker and Compose installed with success. Close terminal and reopen it."
