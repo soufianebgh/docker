@@ -4,9 +4,8 @@ detect_distro() {
     if [ -f /etc/os-release ]; then
         . /etc/os-release
         DISTRO=$ID
-        VERSION=$VERSION_ID
-    else
-        echo "Distribution non reconnue."
+    else 
+        echo "Unknown distro"
         exit 1
     fi
 }
@@ -15,10 +14,10 @@ install_docker_debian() {
     sudo apt-get update
     sudo apt-get install -y ca-certificates curl gnupg
     sudo install -m 0755 -d /etc/apt/keyrings
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+    curl -fsSL https://download.docker.com/linux/${DISTRO}/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
     sudo chmod a+r /etc/apt/keyrings/docker.gpg
     echo \
-      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/${DISTRO} \
       $(lsb_release -cs) stable" | \
       sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
     sudo apt-get update
@@ -52,7 +51,7 @@ case $DISTRO in
         install_docker_centos
         ;;
     *)
-        echo "Distribution $DISTRO non supportée."
+        echo "Not supported $DISTRO."
         exit 1
         ;;
 esac
@@ -62,4 +61,4 @@ install_docker_compose_completion
 
 sudo usermod -aG docker $USER
 
-echo "Docker and Compose installed with success. Close terminal and reopen it.
+echo "Docker and Compose installed with success. Close terminal and reopen it."
