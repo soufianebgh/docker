@@ -1,0 +1,36 @@
+- name: Install dependencies
+  ansible.builtin.package:
+    name: "{{ docker_dependencies }}"
+    state: present
+  become: true
+
+- name: Add Docker repository
+  ansible.builtin.command: >
+    yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+  args:
+    creates: /etc/yum.repos.d/docker-ce.repo
+  become: true
+
+- name: Install Docker
+  ansible.builtin.package:
+    name:
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
+    state: present
+  become: true
+
+- name: Enable and start Docker
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+  become: true
+
+- name: Add users to docker group
+  ansible.builtin.user:
+    name: "{{ item }}"
+    groups: docker
+    append: true
+  loop: "{{ docker_users }}"
+  become: true

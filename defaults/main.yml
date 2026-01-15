@@ -1,0 +1,13 @@
+docker_users:
+- "{{ ansible_user_id }}"
+
+# Version / état
+docker_package_state: present
+
+# Arch mapping (ARM / x86)
+docker_apt_arch_map:
+  x86_64: amd64
+  aarch64: arm64
+  armv7l: armhf
+
+docker_apt_arch: "{{ docker_apt_arch_map.get(ansible_architecture, 'amd64') }}"

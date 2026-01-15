@@ -1,0 +1,7 @@
+---
+- name: "Install Docker Engine"
+  hosts: localhost
+  connection: local
+  become: true
+  roles:
+    - role: .
