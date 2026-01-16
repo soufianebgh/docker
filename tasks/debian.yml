@@ -1,71 +1,45 @@
-- name: Install dependencies
+---
+- name: Install Docker dependencies (Debian/Ubuntu)
   ansible.builtin.apt:
-    name: "{{ docker_dependencies }}"
+    name: "{{ docker_dependencies_debian }}"
     state: present
-    update_cache: true
+    update_cache: false
   become: true
 
-- name: Create keyrings directory
+- name: Ensure /etc/apt/keyrings exists
   ansible.builtin.file:
     path: /etc/apt/keyrings
     state: directory
-    mode: '0755'
+    mode: "0755"
   become: true
 
-- name: Download Docker GPG key (ascii)
+- name: Download Docker GPG key (ASCII armored)
   ansible.builtin.get_url:
-    url: "https://download.docker.com/linux/debian/gpg"
+    url: "{{ docker_repo_url }}/gpg"
     dest: /etc/apt/keyrings/docker.asc
     mode: "0644"
   become: true
 
-- name: Dearmor Docker GPG key to keyring
-  ansible.builtin.command: >
-    gpg --dearmor -o /etc/apt/keyrings/docker.gpg /etc/apt/keyrings/docker.asc
-  args:
-    creates: /etc/apt/keyrings/docker.gpg
+- name: Convert Docker key to keyring (.gpg)
+  ansible.builtin.command:
+    cmd: "gpg --dearmor -o {{ docker_keyring_path }} /etc/apt/keyrings/docker.asc"
+    creates: "{{ docker_keyring_path }}"
   become: true
 
-- name: Add Docker apt key
-  ansible.builtin.apt_key:
-    url: "https://download.docker.com/linux/debian/gpg"
-    state: present
-  become: true
-
-- name: Add Docker repository
+- name: Add Docker repository (signed-by keyring)
   ansible.builtin.apt_repository:
-    repo: "deb [arch={{ docker_apt_arch }}] https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable"
+    repo: "deb [arch={{ docker_apt_arch }} signed-by={{ docker_keyring_path }}] {{ docker_repo_url }} {{ ansible_distribution_release }} stable"
     state: present
   become: true
 
-- name: Update apt cache
+- name: Update APT cache once (after Docker repo)
   ansible.builtin.apt:
     update_cache: true
+    cache_valid_time: 3600
   become: true
 
 - name: Install Docker packages
   ansible.builtin.apt:
-    name:
-    - docker-ce
-    - docker-ce-cli
-    - containerd.io
-    - docker-buildx-plugin
-    - docker-compose-plugin
-    state: "{{ docker_package_state }}"
-    update_cache: true
-  become: true
-
-- name: Enable and start Docker
-  ansible.builtin.service:
-    name: docker
-    state: started
-    enabled: true
-  become: true
-
-- name: Add users to docker group
-  ansible.builtin.user:
-    name: "{{ item }}"
-    groups: docker
-    append: true
-  loop: "{{ docker_users }}"
+    name: "{{ docker_packages_debian }}"
+    state: present
   become: true
