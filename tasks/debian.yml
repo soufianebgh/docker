@@ -38,6 +38,17 @@
     cache_valid_time: 3600
   become: true
 
+- name: Docker logs rotate
+  copy:
+    content: |
+      {
+        "log-driver": "json-file",
+        "log-opts": { "max-size": "20m", "max-file": "3" }
+      }
+    dest: /etc/docker/daemon.json
+    mode: "0644"
+  notify: Restart docker
+
 - name: Install Docker packages
   ansible.builtin.apt:
     name: "{{ docker_packages_debian }}"
